@@ -5,7 +5,7 @@
 </head>
 <body>
     <h1>Upload Images</h1>
-    <form action="upload.php" method="POST" enctype="multipart/form-data">
+    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
         <!-- Allow multiple file selection -->
         <label for="image">Choose image(s) to upload:</label>
         <input type="file" name="image[]" id="image" accept="image/*" multiple>
