@@ -42,14 +42,19 @@
 
     // XOR encryption function
     function xor_encrypt($data, $key) {
-        $encrypted = '';
         $keyLength = strlen($key);
+        $encrypted = '';
 
         for ($i = 0; $i < strlen($data); $i++) {
             $encrypted .= $data[$i] ^ $key[$i % $keyLength];
         }
 
         return $encrypted;
+    }
+
+    // XOR decryption function (for consistency)
+    function xor_decrypt($data, $key) {
+        return xor_encrypt($data, $key);
     }
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -151,7 +156,7 @@
                 $encryptionKey = '123'; // Replace with your actual key
 
                 // Decrypt the image data
-                $decryptedImageData = xor_encrypt($encryptedImageData, $encryptionKey);
+                $decryptedImageData = xor_decrypt($encryptedImageData, $encryptionKey);
 
                 $base64Image = base64_encode($decryptedImageData);
                 echo "<div class='image-item'>";
