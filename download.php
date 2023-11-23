@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Function to sanitize the folder name input
 function sanitize_folder($folder) {
     // Implement appropriate sanitization for the folder input
