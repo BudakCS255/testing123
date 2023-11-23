@@ -40,6 +40,86 @@
         return filter_var($folder, FILTER_SANITIZE_STRING);
     }
 
+    // XOR encryption function
+    function xor_encrypt($data, $key) {
+        $encrypted = '';
+        $keyLength = strlen($key);
+
+        for ($i = 0; $i < strlen($data); $i++) {
+            $encrypted .= $data[$i] ^ $key[$i % $keyLength];
+        }
+
+        return $encrypted;
+    }
+
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        // Check if files were uploaded
+        if (isset($_FILES["image"])) {
+            $uploadedFiles = $_FILES["image"];
+
+            // Database configuration
+            $dbHost = 'localhost';
+            $dbUser = 'afnan'; // Replace with your MySQL username
+            $dbPass = 'john_wick_77'; // Replace with your MySQL password
+            $dbName = 'mywebsite_images'; // Replace with your database name
+            $imageColumnName = 'images'; // Replace with your BLOB column name
+
+            // Create a database connection
+            $conn = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
+
+            // Check the connection
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
+
+            // Loop through the uploaded files
+            foreach ($uploadedFiles["error"] as $key => $error) {
+                // Check for file upload errors
+                if ($error == 0) {
+                    // Get the selected folder and image data
+                    $folder = $_POST["folder"];
+                    $imageData = file_get_contents($uploadedFiles["tmp_name"][$key]);
+
+                    // Define your encryption key
+                    $encryptionKey = 'MyStaticKey123456'; // Replace with your actual key
+
+                    // Encrypt the image data
+                    $encryptedImageData = xor_encrypt($imageData, $encryptionKey);
+
+                    // Prepare and execute the database insertion
+                    $stmt = $conn->prepare("INSERT INTO $folder ($imageColumnName) VALUES (?)");
+                    $stmt->bind_param("b", $encryptedImageData); // Use "b" for binary data
+                    $stmt->send_long_data(0, $encryptedImageData); // Send binary data separately
+                    $stmt->execute();
+
+                    if ($stmt->affected_rows > 0) {
+                        $message = "Images uploaded successfully!";
+                    } else {
+                        $message = "Failed to upload images.";
+                    }
+
+                    // Close the statement
+                    $stmt->close();
+                } else {
+                    $message = "File upload error: " . $error;
+                }
+            }
+
+            // Close the database connection
+            $conn->close();
+
+            // Redirect back to index.php with the message
+            header("Location: index.php?message=" . urlencode($message));
+            exit();
+        } else {
+            $message = "No images uploaded.";
+        }
+
+        // Redirect back to index.php with the message
+        header("Location: index.php?message=" . urlencode($message));
+        exit();
+    }
+
     if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['view_images'])) {
         // Your image_viewer.php logic here
         $selectedFolder = sanitize_folder($_GET['folder']);
@@ -57,7 +137,7 @@
             die("Connection failed: " . $conn->connect_error);
         }
 
-        // Query to retrieve image data from the selected folder table
+        // Query to retrieve encrypted image data from the selected folder table
         $sql = "SELECT id, images FROM $selectedFolder";
         $result = $conn->query($sql);
 
@@ -65,70 +145,25 @@
             echo "<div class='image-container'>";
             while ($row = $result->fetch_assoc()) {
                 $imageId = $row["id"];
-                $imageData = $row["images"];
-                $base64Image = base64_encode($imageData);
+                $encryptedImageData = $row["images"];
+
+                // Define your decryption key (must be the same as the encryption key)
+                $encryptionKey = 'MyStaticKey123456'; // Replace with your actual key
+
+                // Decrypt the image data
+                $decryptedImageData = xor_encrypt($encryptedImageData, $encryptionKey);
+
+                $base64Image = base64_encode($decryptedImageData);
                 echo "<div class='image-item'>";
                 echo "<h2>Image $imageId</h2>";
                 echo "<img src='data:image/jpeg;base64,$base64Image' alt='Image $imageId'>";
                 echo "</div>";
             }
             echo "</div>";
-            // Add a button to download all images as a zip file
-            echo "<form action='" . $_SERVER['PHP_SELF'] . "' method='POST'>";
-            echo "<input type='hidden' name='folder' value='" . htmlspecialchars($selectedFolder) . "'>";
-            echo "<input type='submit' name='download_all' value='Download All Images as Zip'>";
-            echo "</form>";
+
+            // ...
         } else {
             echo "No images found in $selectedFolder.";
-        }
-
-        $conn->close();
-    }
-
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_all'])) {
-        $selectedFolder = sanitize_folder($_POST['folder']);
-        // Database configuration - Update with your actual database credentials
-        $dbHost = 'localhost';
-        $dbUser = 'afnan';
-        $dbPass = 'john_wick_77';
-        $dbName = 'mywebsite_images';
-
-        // Create a database connection
-        $conn = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
-
-        // Check the connection
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-
-        // Fetch all images from the selected folder
-        $sql = "SELECT images FROM $selectedFolder";
-        $result = $conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            // Create a new zip file
-            $zip = new ZipArchive();
-            $zipFileName = $selectedFolder . '.zip';
-            if ($zip->open($zipFileName, ZipArchive::CREATE) === TRUE) {
-                // Add files to zip
-                while ($row = $result->fetch_assoc()) {
-                    $zip->addFromString("image{$row['id']}.jpg", $row['images']);
-                }
-                $zip->close();
-
-                // Set headers to download the file
-                header('Content-Type: application/zip');
-                header('Content-disposition: attachment; filename=' . $zipFileName);
-                header('Content-Length: ' . filesize($zipFileName));
-                readfile($zipFileName);
-
-                // Remove the zip file from the server
-                unlink($zipFileName);
-            } else {
-                echo 'Failed to create a zip file';
-            }
-        } else {
-            echo "No images found in $selectedFolder to download.";
         }
 
         $conn->close();
