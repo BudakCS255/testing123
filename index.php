@@ -81,7 +81,7 @@
                     $imageData = file_get_contents($uploadedFiles["tmp_name"][$key]);
 
                     // Define your encryption key
-                    $encryptionKey = 'MyStaticKey123456'; // Replace with your actual key
+                    $encryptionKey = '123'; // Replace with your actual key
 
                     // Encrypt the image data
                     $encryptedImageData = xor_encrypt($imageData, $encryptionKey);
@@ -148,7 +148,7 @@
                 $encryptedImageData = $row["images"];
 
                 // Define your decryption key (must be the same as the encryption key)
-                $encryptionKey = 'MyStaticKey123456'; // Replace with your actual key
+                $encryptionKey = '123'; // Replace with your actual key
 
                 // Decrypt the image data
                 $decryptedImageData = xor_encrypt($encryptedImageData, $encryptionKey);
