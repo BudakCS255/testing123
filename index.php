@@ -1,25 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Welcome to Bilik 4312</title>
+    <title>Image Upload and Viewer</title>
 </head>
 <body>
-    <h1>Welcome to Bilik 4312!</h1>
-    <p>Kita ada Afnan, Fauzan dan Zuhair.</p>
+    <h1>Temporary Index Page</h1>
     
-    <?php
-        // This function outputs a large amount of information about the current state of PHP
-        // This includes information about PHP compilation options and extensions, the PHP version,
-        // server information and environment (if compiled as a module), the PHP environment,
-        // OS version information, paths, master and local values of configuration options,
-        // HTTP headers, and the PHP License.
-        //
-        // Because every system is set up differently, phpinfo() is commonly used to check
-        // configuration settings and for available predefined variables on a given system.
-        //
-        // phpinfo() is also a valuable debugging tool as it contains all EGPCS (Environment, GET,
-        // POST, Cookie, Server) data.
-        phpinfo();
-    ?>
+    <h2>Upload Images</h2>
+    <form action="upload.php" method="POST" enctype="multipart/form-data">
+        <!-- Allow multiple file selection -->
+        <label for="image">Choose image(s) to upload:</label>
+        <input type="file" name="image[]" id="image" accept="image/*" multiple>
+        <br>
+        <label for="folder">Select a folder:</label>
+        <select name="folder" id="folder">
+            <option value="Case001">Case001</option>
+            <option value="Case002">Case002</option>
+            <option value="Case003">Case003</option>
+        </select>
+        <br>
+        <input type="submit" value="Upload">
+    </form>
+
+    <h2>View and Download Images</h2>
+    <form action="download.php" method="GET">
+        <label for="view_folder">Select a folder to view images:</label>
+        <select name="folder" id="view_folder">
+            <option value="Case001">Case001</option>
+            <option value="Case002">Case002</option>
+            <option value="Case003">Case003</option>
+        </select>
+        <input type="submit" name="view_images" value="View Images">
+    </form>
+
+    <!-- Feedback area for displaying messages -->
+    <div id="upload-feedback">
+        <?php
+        if (isset($_GET['message'])) {
+            echo '<p>' . htmlspecialchars($_GET['message']) . '</p>';
+        }
+        ?>
+    </div>
 </body>
 </html>
