@@ -2,13 +2,6 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Function to sanitize the folder name input
-function sanitize_folder($folder) {
-    // Implement appropriate sanitization for the folder input
-    // For example, you might want to ensure that only valid folder names are processed
-    return filter_var($folder, FILTER_SANITIZE_STRING);
-}
-
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['view_images'])) {
     // Your image_viewer.php logic here
     $selectedFolder = sanitize_folder($_GET['folder']);
