@@ -4,7 +4,6 @@ ini_set('display_errors', 1);
 
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['view_images'])) {
     // Your image_viewer.php logic here
-    $selectedFolder = sanitize_folder($_GET['folder']);
     // Database configuration - Update with your actual database credentials
     $dbHost = 'localhost';
     $dbUser = 'afnan';
